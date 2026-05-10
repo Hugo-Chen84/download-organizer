@@ -37,7 +37,7 @@
 
 1. 下载本仓库的 ZIP 包并解压，或使用 Git 克隆：
    ```bash
-   git clone https://github.com/yourusername/file-download-organizer.git
+   git clone https://github.com/Hugo-Chen84/download-organizer.git
    ```
 
 2. 打开浏览器扩展管理页面：
@@ -46,7 +46,12 @@
 
 3. 开启「开发者模式」
 
-4. 点击「加载已解压的扩展程序」，选择解压后的 `project1` 文件夹
+4. 点击「加载已解压的扩展程序」，选择解压后包含以下文件的文件夹：
+   - `manifest.json`
+   - `background.js`
+   - `popup.html`
+   - `popup.js`
+   - `icons/` 文件夹
 
 5. 插件安装完成，会在浏览器工具栏显示图标
 
@@ -60,17 +65,29 @@
 ## 项目结构
 
 ```
-project1/
-├── manifest.json    # 扩展配置文件
-├── background.js    # 后台服务脚本
-├── popup.html       # 弹出界面
-├── popup.js         # 界面交互逻辑
+download-organizer/
+├── manifest.json    # 扩展配置文件 (必需)
+├── background.js    # 后台服务脚本 (必需)
+├── popup.html       # 弹出界面 (必需)
+├── popup.js         # 界面交互逻辑 (必需)
+├── README.md        # 说明文档
 └── icons/           # 图标资源
     ├── icon16.png
     ├── icon32.png
     ├── icon48.png
     └── icon128.png
 ```
+
+## ⚠️ 重要说明
+
+**关于文件夹结构**：
+- 从 GitHub 下载的 ZIP 包会将所有文件解压到一个文件夹中
+- 请选择**包含 `manifest.json` 等必要文件的文件夹**作为扩展程序目录
+- 不需要额外创建 `project1` 文件夹，文件应直接使用
+
+**安装时常见问题**：
+- 如果看到"清单文件缺失或不可读取"错误，请确保选择的文件夹包含 `manifest.json`
+- 扩展程序文件夹应包含：manifest.json、background.js、popup.html、popup.js 和 icons/ 目录
 
 ## 技术栈
 
