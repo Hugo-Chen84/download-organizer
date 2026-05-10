@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "Auto Download Organizer",
+  "version": "1.0",
+  "description": "Automatically organizes downloaded files into subdirectories based on their file extensions.",
+  "permissions": [
+    "downloads"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
+}
