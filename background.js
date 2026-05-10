@@ -1,33 +1,92 @@
-chrome.downloads.onDeterminingFilename.addListener((item, suggest) => {
-  const filename = item.filename;
-  // Get file extension
-  const parts = filename.split('.');
-  const extension = parts.length > 1 ? parts.pop().toLowerCase() : '';
+const CATEGORIES = {
+  documents: [
+    'docx', 'ppt', 'pdf', 'pptx', 'doc', 'xls', 'xlsx', 
+    'md', 'txt', 'rtf', 'odt', 'csv', 'epub', 'mobi'
+  ],
+  code: [
+    'c', 'v', 'py', 'xdf', 'h', 'js', 'html', 'css', 
+    'java', 'cpp', 'php', 'go', 'rb', 'swift', 'ts', 'json'
+  ],
+  images: [
+    'jpg', 'img', 'png', 'gif', 'bmp', 'svg', 'webp', 'tiff', 'ico'
+  ],
+  videos: [
+    'mp4', 'avi', 'mov', 'wmv', 'flv', 'mkv', 'webm'
+  ],
+  archives: [
+    'zip', '7z', 'rar', 'tar', 'gz', 'bz2', 'iso'
+  ],
+  installers: [
+    'exe', 'msi', 'dmg', 'pkg', 'deb', 'rpm'
+  ]
+};
 
-  let subDir = "others"; // Default directory
-
-  // Categories mapping
-  const categories = {
-    "documents": ["doc", "docx", "ppt", "pptx", "xls", "xlsx", "pdf", "md", "txt", "rtf", "csv"],
-    "code": ["c", "cpp", "h", "hpp", "v", "py", "xdf", "js", "html", "css", "ts", "json", "xml", "sh", "java"],
-    "images": ["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg", "ico", "img"],
-    "videos": ["mp4", "mkv", "avi", "mov", "wmv", "flv", "webm"],
-    "archives": ["zip", "7z", "rar", "tar", "gz", "bz2", "xz"],
-    "installers": ["exe", "msi", "dmg", "apk", "deb", "rpm"],
-    "audio": ["mp3", "wav", "ogg", "flac", "aac", "m4a"]
-  };
-
-  // Find the matching category
-  for (const [category, exts] of Object.entries(categories)) {
-    if (exts.includes(extension)) {
-      subDir = category;
-      break;
+function getCategory(extension) {
+  if (!extension) return 'others';
+  
+  const lowerExt = extension.toLowerCase();
+  
+  for (const [category, extensions] of Object.entries(CATEGORIES)) {
+    if (extensions.includes(lowerExt)) {
+      return category;
     }
   }
+  
+  return 'others';
+}
 
-  // Suggest the new filename with subdirectory
-  suggest({
-    filename: `${subDir}/${filename}`,
-    conflictAction: 'uniquify'
-  });
+function extractExtension(filename) {
+  if (!filename || typeof filename !== 'string') {
+    return '';
+  }
+  
+  const lastDotIndex = filename.lastIndexOf('.');
+  if (lastDotIndex === -1 || lastDotIndex === 0) {
+    return '';
+  }
+  
+  return filename.substring(lastDotIndex + 1);
+}
+
+chrome.downloads.onDeterminingFilename.addListener((item, suggest) => {
+  try {
+    const filename = item.filename;
+    
+    if (!filename) {
+      suggest({
+        filename: 'others/unknown_file',
+        conflictAction: 'uniquify'
+      });
+      return;
+    }
+    
+    const extension = extractExtension(filename);
+    const category = getCategory(extension);
+    
+    const newFilename = `${category}/${filename}`;
+    
+    suggest({
+      filename: newFilename,
+      conflictAction: 'uniquify'
+    });
+    
+    console.log(`Download organized: ${filename} -> ${newFilename}`);
+  } catch (error) {
+    console.error('Error organizing download:', error);
+    suggest({
+      filename: `others/${item.filename || 'unknown_file'}`,
+      conflictAction: 'uniquify'
+    });
+  }
+});
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === 'getCategories') {
+    sendResponse({ categories: CATEGORIES });
+  } else if (message.action === 'getDownloadHistory') {
+    chrome.downloads.search({ limit: 20, orderBy: ['-startTime'] }, (downloads) => {
+      sendResponse({ downloads });
+    });
+    return true;
+  }
 });
